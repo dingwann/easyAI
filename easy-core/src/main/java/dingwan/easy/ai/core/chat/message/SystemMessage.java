@@ -1,22 +1,17 @@
 package dingwan.easy.ai.core.chat.message;
 
 
-import java.util.Map;
+import lombok.Builder;
+import lombok.Getter;
 
+@Builder
+@Getter
 public class SystemMessage extends AbstractMessage {
 
-    @Override
-    public MessageType getMessageType() {
-        return null;
+    public static final String MESSAGE_TYPE = MessageType.SYSTEM.name();
+
+    public SystemMessage(MessageType messageType, String content) {
+        super(messageType, content);
     }
 
-    @Override
-    public Map<String, Object> getMetadata() {
-        return Map.of();
-    }
-
-    @Override
-    public String getText() {
-        return "";
-    }
 }
