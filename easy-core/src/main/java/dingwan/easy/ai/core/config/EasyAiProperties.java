@@ -1,6 +1,6 @@
 package dingwan.easy.ai.core.config;
 
-import dingwan.easy.ai.core.chat.prompt.ChatOptions;
+import dingwan.easy.ai.core.chat.model.ChatOptions;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.boot.context.properties.ConfigurationProperties;
