@@ -128,6 +128,8 @@ git commit -m "feat: add Usage for token statistics"
 
 ## Task 3: Create ChatResponse
 
+**Depends on:** Task 2 (Usage class)
+
 **Files:**
 - Create: `easy-core/src/main/java/dingwan/easy/ai/core/chat/model/ChatResponse.java`
 
@@ -171,66 +173,9 @@ git commit -m "feat: add ChatResponse for response data"
 
 ---
 
-## Task 4: Create ChatRequest
+## Task 4: Refactor Message classes
 
-**Files:**
-- Create: `easy-core/src/main/java/dingwan/easy/ai/core/chat/model/ChatRequest.java`
-
-- [ ] **Step 1: Create ChatRequest class**
-
-```java
-package dingwan.easy.ai.core.chat.model;
-
-import dingwan.easy.ai.core.chat.message.Message;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
-@Data
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
-public class ChatRequest {
-
-    @Builder.Default
-    private List<Message> messages = new ArrayList<>();
-    private ChatOptions options;
-
-    public static ChatRequest of(Message... messages) {
-        return ChatRequest.builder()
-                .messages(Arrays.asList(messages))
-                .build();
-    }
-
-    public static ChatRequest of(List<Message> messages) {
-        return ChatRequest.builder()
-                .messages(messages)
-                .build();
-    }
-
-    public static ChatRequest of(String userText) {
-        return ChatRequest.builder()
-                .messages(List.of(new UserMessage(userText)))
-                .build();
-    }
-}
-```
-
-- [ ] **Step 2: Commit**
-
-```bash
-git add easy-core/src/main/java/dingwan/easy/ai/core/chat/model/ChatRequest.java
-git commit -m "feat: add ChatRequest for request data"
-```
-
----
-
-## Task 5: Refactor Message classes
+**Depends on:** None (must be done before Task 5)
 
 **Files:**
 - Modify: `easy-core/src/main/java/dingwan/easy/ai/core/chat/message/Message.java`
@@ -362,7 +307,71 @@ git commit -m "refactor: simplify Message classes, remove MessageType dependency
 
 ---
 
+## Task 5: Create ChatRequest
+
+**Depends on:** Task 4 (Message classes must be refactored first)
+
+**Files:**
+- Create: `easy-core/src/main/java/dingwan/easy/ai/core/chat/model/ChatRequest.java`
+
+- [ ] **Step 1: Create ChatRequest class**
+
+```java
+package dingwan.easy.ai.core.chat.model;
+
+import dingwan.easy.ai.core.chat.message.Message;
+import dingwan.easy.ai.core.chat.message.UserMessage;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+public class ChatRequest {
+
+    @Builder.Default
+    private List<Message> messages = new ArrayList<>();
+    private ChatOptions options;
+
+    public static ChatRequest of(Message... messages) {
+        return ChatRequest.builder()
+                .messages(Arrays.asList(messages))
+                .build();
+    }
+
+    public static ChatRequest of(List<Message> messages) {
+        return ChatRequest.builder()
+                .messages(messages)
+                .build();
+    }
+
+    public static ChatRequest of(String userText) {
+        return ChatRequest.builder()
+                .messages(List.of(new UserMessage(userText)))
+                .build();
+    }
+}
+```
+
+- [ ] **Step 2: Commit**
+
+```bash
+git add easy-core/src/main/java/dingwan/easy/ai/core/chat/model/ChatRequest.java
+git commit -m "feat: add ChatRequest for request data"
+```
+
+---
+
 ## Task 6: Delete obsolete files
+
+**Depends on:** Task 10 (ChatClient must be rewritten before deleting old files it may reference)
 
 **Files:**
 - Delete: `easy-core/src/main/java/dingwan/easy/ai/core/chat/prompt/Prompt.java`
@@ -473,6 +482,8 @@ git commit -m "feat: add defaultOptions to EasyAiProperties"
 
 ## Task 9: Create OpenAIChatModel
 
+**Depends on:** Task 1, 2, 3, 4, 5, 7, 8 (all model classes and interfaces)
+
 **Files:**
 - Create: `easy-core/src/main/java/dingwan/easy/ai/core/chat/provider/openai/OpenAIChatModel.java`
 
@@ -486,7 +497,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import dingwan.easy.ai.core.chat.ChatModel;
-import dingwan.easy.ai.core.chat.config.EasyAiProperties;
+import dingwan.easy.ai.core.config.EasyAiProperties;
 import dingwan.easy.ai.core.chat.message.Message;
 import dingwan.easy.ai.core.chat.model.ChatOptions;
 import dingwan.easy.ai.core.chat.model.ChatRequest;
@@ -669,12 +680,15 @@ git commit -m "feat: add OpenAIChatModel implementation"
 
 ---
 
-## Task 10: Create ChatClientPromptSpec
+## Task 10: Rewrite ChatClient and ChatClientPromptSpec
+
+**Note:** These two classes are combined because they have circular dependency - ChatClient references ChatClientPromptSpec and ChatClientPromptSpec references ChatClient.
 
 **Files:**
+- Modify: `easy-core/src/main/java/dingwan/easy/ai/core/chat/ChatClient.java`
 - Create: `easy-core/src/main/java/dingwan/easy/ai/core/chat/ChatClientPromptSpec.java`
 
-- [ ] **Step 1: Create ChatClientPromptSpec for builder pattern**
+- [ ] **Step 1: Create ChatClientPromptSpec class**
 
 ```java
 package dingwan.easy.ai.core.chat;
@@ -743,21 +757,7 @@ public class ChatClientPromptSpec {
 }
 ```
 
-- [ ] **Step 2: Commit**
-
-```bash
-git add easy-core/src/main/java/dingwan/easy/ai/core/chat/ChatClientPromptSpec.java
-git commit -m "feat: add ChatClientPromptSpec for fluent builder pattern"
-```
-
----
-
-## Task 11: Rewrite ChatClient as facade
-
-**Files:**
-- Modify: `easy-core/src/main/java/dingwan/easy/ai/core/chat/ChatClient.java`
-
-- [ ] **Step 1: Rewrite ChatClient**
+- [ ] **Step 2: Rewrite ChatClient**
 
 ```java
 package dingwan.easy.ai.core.chat;
@@ -829,16 +829,17 @@ public class ChatClient {
 }
 ```
 
-- [ ] **Step 2: Commit**
+- [ ] **Step 3: Commit**
 
 ```bash
 git add easy-core/src/main/java/dingwan/easy/ai/core/chat/ChatClient.java
-git commit -m "feat: rewrite ChatClient as facade with simple API"
+git add easy-core/src/main/java/dingwan/easy/ai/core/chat/ChatClientPromptSpec.java
+git commit -m "feat: rewrite ChatClient as facade with fluent builder API"
 ```
 
 ---
 
-## Task 12: Update configuration class
+## Task 11: Update configuration class
 
 **Files:**
 - Modify: `easy-core/src/main/java/dingwan/easy/ai/core/config/InitialAutoConfiguration.java`
@@ -858,7 +859,7 @@ git commit -m "chore: update configuration for ChatClient"
 
 ---
 
-## Task 13: Clean up empty prompt directory
+## Task 12: Clean up empty prompt directory
 
 **Files:**
 - Delete: `easy-core/src/main/java/dingwan/easy/ai/core/chat/prompt/` directory
@@ -878,7 +879,7 @@ git commit -m "chore: remove empty prompt directory"
 
 ---
 
-## Task 14: Final verification
+## Task 13: Final verification
 
 - [ ] **Step 1: Build project**
 
@@ -901,19 +902,18 @@ git commit -m "fix: resolve any remaining import issues"
 
 ## Summary
 
-| Task | Description |
-|------|-------------|
-| 1 | Create ChatOptions in model package |
-| 2 | Create Usage class |
-| 3 | Create ChatResponse |
-| 4 | Create ChatRequest |
-| 5 | Refactor Message classes |
-| 6 | Delete obsolete files |
-| 7 | Create ChatModel interface |
-| 8 | Update EasyAiProperties |
-| 9 | Create OpenAIChatModel |
-| 10 | Create ChatClientPromptSpec |
-| 11 | Rewrite ChatClient as facade |
-| 12 | Update configuration class |
-| 13 | Clean up empty directories |
-| 14 | Final verification |
+| Task | Description | Dependencies |
+|------|-------------|--------------|
+| 1 | Create ChatOptions in model package | None |
+| 2 | Create Usage class | None |
+| 3 | Create ChatResponse | Task 2 |
+| 4 | Refactor Message classes | None |
+| 5 | Create ChatRequest | Task 4 |
+| 6 | Delete obsolete files | Task 10 |
+| 7 | Create ChatModel interface | None |
+| 8 | Update EasyAiProperties | Task 1 |
+| 9 | Create OpenAIChatModel | Task 1, 2, 3, 4, 5, 7, 8 |
+| 10 | Rewrite ChatClient and ChatClientPromptSpec | Task 4, 5, 7, 9 |
+| 11 | Update configuration class | Task 8 |
+| 12 | Clean up empty directories | Task 6 |
+| 13 | Final verification | All |
