@@ -1,12 +1,10 @@
 package dingwan.easy.ai.core.config;
 
 import dingwan.easy.ai.core.chat.model.ChatOptions;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
-@Getter
-@Setter
+@Data
 @ConfigurationProperties(prefix = "easy.ai.llm")
 public class EasyAiProperties {
 

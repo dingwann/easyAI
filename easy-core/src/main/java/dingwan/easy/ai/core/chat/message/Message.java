@@ -7,4 +7,5 @@ public interface Message {
     String getRole();
     String getText();
     Map<String, Object> getMetadata();
+
 }

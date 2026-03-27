@@ -14,4 +14,5 @@ public class Usage {
     private Integer promptTokens;
     private Integer completionTokens;
     private Integer totalTokens;
+
 }
