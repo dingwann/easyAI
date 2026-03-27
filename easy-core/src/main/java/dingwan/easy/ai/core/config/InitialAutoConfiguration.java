@@ -5,12 +5,14 @@ import okhttp3.OkHttpClient;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 
 import java.util.concurrent.TimeUnit;
 
 
 @AutoConfiguration
+@EnableConfigurationProperties(EasyAiProperties.class)
 @ConditionalOnBean(EasyAiProperties.class)
 public class InitialAutoConfiguration {
 
