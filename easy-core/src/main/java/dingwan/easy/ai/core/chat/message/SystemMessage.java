@@ -1,5 +1,7 @@
 package dingwan.easy.ai.core.chat.message;
 
+import java.util.Map;
+
 public class SystemMessage extends AbstractMessage {
 
     public SystemMessage(String content) {
