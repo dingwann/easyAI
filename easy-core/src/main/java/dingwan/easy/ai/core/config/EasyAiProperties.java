@@ -1,22 +1,27 @@
 package dingwan.easy.ai.core.config;
 
+import dingwan.easy.ai.core.chat.prompt.ChatOptions;
 import lombok.Getter;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.autoconfigure.AutoConfiguration;
+import lombok.Setter;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
-@AutoConfiguration
-@ConfigurationProperties(prefix = "easy.ai")
 @Getter
+@Setter
+@ConfigurationProperties(prefix = "easy.ai.llm")
 public class EasyAiProperties {
 
-    @Value("${llm.api-key}")
     private String apiKey;
-
-    @Value("${llm.base-url}")
     private String baseUrl;
-
-    @Value("${llm.model}")
     private String model;
+    private String provider;
+    private ChatOptions defaultOptions;
 
+    public ChatOptions getDefaultOptionsOrDefault() {
+        if (defaultOptions == null) {
+            defaultOptions = ChatOptions.builder()
+                    .model(model)
+                    .build();
+        }
+        return defaultOptions;
+    }
 }
