@@ -1,17 +1,17 @@
 package dingwan.easy.ai.core.chat.message;
 
-
-import lombok.Builder;
-import lombok.Getter;
-
-@Builder
-@Getter
 public class UserMessage extends AbstractMessage {
 
-    public static final String MESSAGE_TYPE = MessageType.USER.name();
-
-    public UserMessage(MessageType messageType, String content) {
-        super(messageType, content);
+    public UserMessage(String content) {
+        super(content);
     }
 
+    public UserMessage(String content, Map<String, Object> metadata) {
+        super(content, metadata);
+    }
+
+    @Override
+    public String getRole() {
+        return "user";
+    }
 }

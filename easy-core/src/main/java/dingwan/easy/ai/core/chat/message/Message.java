@@ -1,10 +1,10 @@
 package dingwan.easy.ai.core.chat.message;
 
+import java.util.Map;
 
-import dingwan.easy.ai.core.cntent.Content;
+public interface Message {
 
-public interface Message extends Content  {
-
-    MessageType getMessageType();
-
+    String getRole();
+    String getText();
+    Map<String, Object> getMetadata();
 }
