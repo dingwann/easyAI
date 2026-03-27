@@ -1,28 +1,67 @@
 package dingwan.easy.ai.core.chat;
 
-
+import dingwan.easy.ai.core.chat.message.Message;
+import dingwan.easy.ai.core.chat.message.SystemMessage;
+import dingwan.easy.ai.core.chat.message.UserMessage;
+import dingwan.easy.ai.core.chat.model.ChatRequest;
+import dingwan.easy.ai.core.chat.model.ChatResponse;
+import dingwan.easy.ai.core.chat.provider.openai.OpenAIChatModel;
 import dingwan.easy.ai.core.config.EasyAiProperties;
-import jakarta.annotation.PostConstruct;
-import lombok.extern.slf4j.Slf4j;
+import lombok.Getter;
 import okhttp3.OkHttpClient;
-import okhttp3.Request;
 import org.springframework.stereotype.Component;
+import reactor.core.publisher.Flux;
+
+import java.util.List;
 
 @Component
-@Slf4j
+@Getter
 public class ChatClient {
 
-    private final OkHttpClient EasyOkHttpClient;
-    private final EasyAiProperties easyAiProperties;
-    private static Request request;
+    private final ChatModel chatModel;
 
-    public ChatClient(OkHttpClient easyOkHttpClient, EasyAiProperties easyAiProperties) {
-        EasyOkHttpClient = easyOkHttpClient;
-        this.easyAiProperties = easyAiProperties;
-        ChatClient.request = new Request.Builder()
-                .url(easyAiProperties.getBaseUrl() + "/v1/chat/completions")
-                .addHeader("Authorization", "Bearer " + easyAiProperties.getApiKey())
-                .build();
+    public ChatClient(OkHttpClient httpClient, EasyAiProperties properties) {
+        this.chatModel = new OpenAIChatModel(httpClient, properties);
     }
 
+    // === Core methods ===
+
+    public ChatResponse call(ChatRequest request) {
+        return chatModel.call(request);
+    }
+
+    public Flux<ChatResponse> stream(ChatRequest request) {
+        return chatModel.stream(request);
+    }
+
+    // === Convenience methods ===
+
+    public ChatResponse call(String userText) {
+        return call(ChatRequest.of(userText));
+    }
+
+    public Flux<ChatResponse> stream(String userText) {
+        return stream(ChatRequest.of(userText));
+    }
+
+    public ChatResponse call(String systemPrompt, String userText) {
+        return call(ChatRequest.of(
+                new SystemMessage(systemPrompt),
+                new UserMessage(userText)
+        ));
+    }
+
+    public ChatResponse call(List<Message> messages) {
+        return call(ChatRequest.of(messages));
+    }
+
+    public Flux<ChatResponse> stream(List<Message> messages) {
+        return stream(ChatRequest.of(messages));
+    }
+
+    // === Builder pattern ===
+
+    public ChatClientPromptSpec prompt() {
+        return new ChatClientPromptSpec(this);
+    }
 }
