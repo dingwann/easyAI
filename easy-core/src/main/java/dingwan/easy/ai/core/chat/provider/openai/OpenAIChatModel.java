@@ -5,8 +5,12 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import dingwan.easy.ai.core.chat.ChatModel;
-import dingwan.easy.ai.core.config.EasyAiProperties;
 import dingwan.easy.ai.core.chat.message.Message;
+import dingwan.easy.ai.core.chat.message.UserMessage;
+import dingwan.easy.ai.core.chat.message.content.ContentPart;
+import dingwan.easy.ai.core.chat.message.content.ImageContent;
+import dingwan.easy.ai.core.chat.message.content.TextContent;
+import dingwan.easy.ai.core.config.EasyAiProperties;
 import dingwan.easy.ai.core.chat.model.ChatOptions;
 import dingwan.easy.ai.core.chat.model.ChatRequest;
 import dingwan.easy.ai.core.chat.model.ChatResponse;
@@ -32,7 +36,10 @@ public class OpenAIChatModel implements ChatModel {
         this.httpClient = httpClient;
         this.properties = properties;
         this.objectMapper = new ObjectMapper();
-        this.endpoint = properties.getBaseUrl() + "/v1/chat/completions";
+        String baseUrl = properties.getBaseUrl();
+        if (!baseUrl.endsWith("/v1"))
+            baseUrl = baseUrl + "/v1";
+        this.endpoint = baseUrl + "/chat/completions";
     }
 
     @Override
@@ -131,7 +138,26 @@ public class OpenAIChatModel implements ChatModel {
         for (Message msg : request.getMessages()) {
             ObjectNode msgNode = messagesArray.addObject();
             msgNode.put("role", msg.getRole());
-            msgNode.put("content", msg.getText());
+
+            // 处理多模态消息
+            if (msg instanceof UserMessage && msg.hasMultipleParts()) {
+                ArrayNode contentArray = msgNode.putArray("content");
+                for (ContentPart part : msg.getContentParts()) {
+                    ObjectNode partNode = contentArray.addObject();
+                    partNode.put("type", part.getType());
+                    if (part instanceof TextContent tc) {
+                        partNode.put("text", tc.getText());
+                    } else if (part instanceof ImageContent ic) {
+                        ObjectNode imageUrlNode = partNode.putObject("image_url");
+                        imageUrlNode.put("url", ic.getImageUrl().getUrl());
+                        if (ic.getImageUrl().getDetail() != null) {
+                            imageUrlNode.put("detail", ic.getImageUrl().getDetail());
+                        }
+                    }
+                }
+            } else {
+                msgNode.put("content", msg.getText());
+            }
         }
 
         return RequestBody.create(root.toString(), MediaType.parse("application/json"));

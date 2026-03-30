@@ -20,8 +20,8 @@ public class ChatClient {
 
     private final ChatModel chatModel;
 
-    public ChatClient(OkHttpClient httpClient, EasyAiProperties properties) {
-        this.chatModel = new OpenAIChatModel(httpClient, properties);
+    public ChatClient(OkHttpClient easyOkHttpClient, EasyAiProperties properties) {
+        this.chatModel = new OpenAIChatModel(easyOkHttpClient, properties);
     }
 
     // === Core methods ===

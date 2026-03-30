@@ -4,6 +4,7 @@ import dingwan.easy.ai.core.chat.message.AssistantMessage;
 import dingwan.easy.ai.core.chat.message.Message;
 import dingwan.easy.ai.core.chat.message.SystemMessage;
 import dingwan.easy.ai.core.chat.message.UserMessage;
+import dingwan.easy.ai.core.chat.message.content.ContentPart;
 import dingwan.easy.ai.core.chat.model.ChatOptions;
 import dingwan.easy.ai.core.chat.model.ChatRequest;
 import dingwan.easy.ai.core.chat.model.ChatResponse;
@@ -29,6 +30,25 @@ public class ChatClientPromptSpec {
 
     public ChatClientPromptSpec user(String content) {
         messages.add(new UserMessage(content));
+        return this;
+    }
+
+    /**
+     * 添加多模态用户消息
+     */
+    public ChatClientPromptSpec user(ContentPart... parts) {
+        messages.add(UserMessage.builder().parts(parts).build());
+        return this;
+    }
+
+    /**
+     * 添加带图片的用户消息（便利方法）
+     */
+    public ChatClientPromptSpec userWithImage(String text, String imageUrl) {
+        messages.add(UserMessage.builder()
+                .text(text)
+                .image(imageUrl)
+                .build());
         return this;
     }
 

@@ -1,19 +1,25 @@
 package dingwan.easy.ai.core.chat.message;
 
-import java.util.Map;
-
 public class AssistantMessage extends AbstractMessage {
 
     public AssistantMessage(String content) {
-        super(content);
+        super(MessageRole.ASSISTANT.getValue(), content);
     }
 
-    public AssistantMessage(String content, Map<String, Object> metadata) {
-        super(content, metadata);
+    public static AssistantBuilder builder() {
+        return new AssistantBuilder();
     }
 
-    @Override
-    public String getRole() {
-        return "assistant";
+    public static class AssistantBuilder {
+        private String content;
+
+        public AssistantBuilder content(String content) {
+            this.content = content;
+            return this;
+        }
+        public AssistantMessage build() {
+            return new AssistantMessage(content);
+        }
     }
+
 }

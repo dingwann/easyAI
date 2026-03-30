@@ -1,28 +1,47 @@
 package dingwan.easy.ai.core.chat.message;
 
+import dingwan.easy.ai.core.chat.message.content.ContentPart;
+import dingwan.easy.ai.core.chat.message.content.TextContent;
 import lombok.Getter;
-
-import java.util.HashMap;
+import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Getter
 public abstract class AbstractMessage implements Message {
 
-    protected final String content;
-    protected final Map<String, Object> metadata;
+    protected final String role;
+    protected final List<ContentPart> contentParts;
+    protected final LocalDateTime timestamp = null;
+    protected final Map<String, Object> metadata = null;
 
-    public AbstractMessage(String content) {
-        this.content = content;
-        this.metadata = new HashMap<>();
+    /**
+     * 纯文本消息构造
+     */
+    public AbstractMessage(String role, String text) {
+        this.role = role;
+        this.contentParts = List.of(TextContent.of(text));
     }
 
-    public AbstractMessage(String content, Map<String, Object> metadata) {
-        this.content = content;
-        this.metadata = metadata != null ? metadata : new HashMap<>();
+    /**
+     * 多模态消息构造
+     */
+    public AbstractMessage(String role, List<ContentPart> contentParts) {
+        this.role = role;
+        this.contentParts = contentParts;
     }
 
     @Override
     public String getText() {
-        return this.content;
+        return contentParts.stream()
+                .filter(part -> part instanceof TextContent)
+                .map(part -> ((TextContent) part).getText())
+                .collect(Collectors.joining());
+    }
+
+    @Override
+    public List<ContentPart> getContentParts() {
+        return contentParts;
     }
 }

@@ -1,19 +1,25 @@
 package dingwan.easy.ai.core.chat.message;
 
-import java.util.Map;
-
 public class SystemMessage extends AbstractMessage {
 
     public SystemMessage(String content) {
-        super(content);
+        super(MessageRole.SYSTEM.getValue(), content);
     }
 
-    public SystemMessage(String content, Map<String, Object> metadata) {
-        super(content, metadata);
+    public static SystemBuilder builder() {
+        return new SystemBuilder();
     }
 
-    @Override
-    public String getRole() {
-        return "system";
+    public static class SystemBuilder {
+        private String content;
+
+        public SystemBuilder content(String content) {
+            this.content = content;
+            return this;
+        }
+        public SystemMessage build() {
+            return new SystemMessage(content);
+        }
     }
+
 }

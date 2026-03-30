@@ -10,15 +10,13 @@ import org.springframework.context.annotation.Bean;
 
 import java.util.concurrent.TimeUnit;
 
-
 @AutoConfiguration
 @EnableConfigurationProperties(EasyAiProperties.class)
-@ConditionalOnBean(EasyAiProperties.class)
 public class InitialAutoConfiguration {
 
     @Bean
     @ConditionalOnMissingBean
-    public OkHttpClient EasyOkHttpClient() {
+    public OkHttpClient easyOkHttpClient() {
         return new OkHttpClient.Builder()
                 // 超时配置
                 .connectTimeout(10, TimeUnit.SECONDS)
