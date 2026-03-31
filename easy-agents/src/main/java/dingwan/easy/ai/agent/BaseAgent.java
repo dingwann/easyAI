@@ -32,7 +32,7 @@ public abstract class BaseAgent {
      * @param kwargs 参数
      * @return 结果
      */
-    abstract String run(String inputText, Map<String, Object> kwargs);
+    public abstract String run(String inputText, Map<String, Object> kwargs);
 
     /**
      * 添加消息到历史记录
