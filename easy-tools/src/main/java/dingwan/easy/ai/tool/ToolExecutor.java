@@ -9,7 +9,7 @@ import java.util.Map;
 @Component
 public class ToolExecutor {
 
-    private ToolRegistry registry;
+    private final ToolRegistry registry;
 
     public ToolExecutor(ToolRegistry registry) {
         this.registry = registry;

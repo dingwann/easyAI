@@ -29,11 +29,14 @@ public class ToolRegistry {
     }
 
     public String getAllToolDesc() {
+        if (this.toolMap.isEmpty())
+            return "暂无可用工具";
         Collection<ToolDefinition> values = this.toolMap.values();
         return values.stream()
-                .map(entry -> String.format("- %s: %s",
+                .map(entry -> String.format("- %s: %s(工具方法的参数Schema:%s)",
                         entry.getName(),
-                        entry.getDescription()))
+                        entry.getDescription(),
+                        entry.getParameterSchema()))
                 .collect(Collectors.joining("\n"));
     }
 }

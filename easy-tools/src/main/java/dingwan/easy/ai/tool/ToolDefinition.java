@@ -8,11 +8,11 @@ import java.util.Map;
 @Getter
 public class ToolDefinition {
 
-    private String name;
-    private String description;
-    private Map<String, Object> parameterSchema;
-    private Method method;
-    private Object target;
+    private final String name;
+    private final String description;
+    private final Map<String, Object> parameterSchema;
+    private final Method method;
+    private final Object target;
 
     public ToolDefinition(String name,
                           String description,

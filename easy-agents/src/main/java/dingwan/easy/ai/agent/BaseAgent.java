@@ -17,7 +17,7 @@ public abstract class BaseAgent {
     protected final ChatClient chatClient;
     protected final String systemPrompt;
     protected final ChatOptions chatOptions;
-    protected final List<Message> messages = new ArrayList<>();
+    protected final List<Message> history = new ArrayList<>();
 
     protected BaseAgent(String name, ChatClient chatClient, String systemPrompt, ChatOptions chatOptions) {
         this.name = name;
@@ -39,21 +39,21 @@ public abstract class BaseAgent {
      * @param message 消息
      */
     protected void addMessage(Message message) {
-        this.messages.add(message);
+        this.history.add(message);
     }
 
     /**
      * 清空历史记录
      */
     protected void clearMessage() {
-        this.messages.clear();
+        this.history.clear();
     }
 
     /**
      * 获取历史记录
      */
     protected List<Message> getMessage() {
-        return this.messages.stream().toList();
+        return this.history.stream().toList();
     }
 
     @Override
