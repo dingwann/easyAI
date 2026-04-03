@@ -1,9 +1,10 @@
 package dingwan.easy.ai.core.config;
 
+import dingwan.easy.ai.core.chat.ChatClient;
 import okhttp3.ConnectionPool;
 import okhttp3.OkHttpClient;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
@@ -13,6 +14,8 @@ import java.util.concurrent.TimeUnit;
 @AutoConfiguration
 @EnableConfigurationProperties(EasyAiProperties.class)
 public class InitialAutoConfiguration {
+
+    @Autowired ChatClient chatClient;
 
     @Bean
     @ConditionalOnMissingBean
@@ -36,6 +39,11 @@ public class InitialAutoConfiguration {
                                 .build()
                 ))
                 .build();
+    }
+
+    @Bean("chatClient")
+    public ChatClient easyChatClient() {
+        return chatClient;
     }
 
 }

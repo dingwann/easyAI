@@ -12,16 +12,15 @@ import dingwan.easy.ai.core.chat.message.UserMessage;
 import dingwan.easy.ai.core.chat.model.ChatOptions;
 import dingwan.easy.ai.core.chat.model.ChatResponse;
 import dingwan.easy.ai.tool.ToolCallJSON;
+import dingwan.easy.ai.tool.ToolDefinition;
 import dingwan.easy.ai.tool.ToolExecutor;
 import dingwan.easy.ai.tool.ToolRegistry;
 import lombok.extern.slf4j.Slf4j;
 
+import org.springframework.stereotype.Component;
 import reactor.core.publisher.Flux;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -29,6 +28,7 @@ import java.util.regex.Pattern;
  * 基于基类重写简单对话Agent
  */
 @Slf4j
+@Component
 public class SimpleAgent extends BaseAgent {
 
     private final ToolRegistry toolRegistry;
@@ -343,6 +343,46 @@ public class SimpleAgent extends BaseAgent {
         """.formatted(toolDesc);
 
         return basePrompt + toolsSection;
+    }
+
+    /**
+     * 添加工具到Agent
+     * @param tool 工具定义
+     */
+    private void addTool(ToolDefinition tool) {
+        if (this.toolRegistry == null)
+            throw new RuntimeException("工具注册器不存在");
+        this.toolRegistry.register(tool);
+        log.info("\"\uD83D\uDD27 工具 '{}' 已添加", tool.getName());
+    }
+
+    /**
+     * 检查是否有可用工具
+     * @return 检查结果
+     */
+    private boolean hasTools() {
+        return this.toolEnabled && this.toolRegistry != null;
+    }
+
+    /**
+     * 移除工具
+     * @param toolName 工具名称
+     * @return 移除结果
+     */
+    private boolean removeTool(String toolName) {
+        if (this.toolRegistry != null) {
+            return this.toolRegistry.remove(toolName);
+        }
+        return false;
+    }
+
+    /**
+     * 列出所有工具
+     * @return list
+     */
+    private List<ToolDefinition> getTools() {
+        Collection<ToolDefinition> toolRegistryAll = this.toolRegistry.getAll();
+        return new ArrayList<>(toolRegistryAll);
     }
 
 }

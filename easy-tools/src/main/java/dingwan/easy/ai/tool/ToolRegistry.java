@@ -20,6 +20,10 @@ public class ToolRegistry {
         return toolMap.get(name);
     }
 
+    public boolean remove(String name) {
+        return toolMap.remove(name) != null;
+    }
+
     public Collection<ToolDefinition> getAll() {
         return toolMap.values();
     }
