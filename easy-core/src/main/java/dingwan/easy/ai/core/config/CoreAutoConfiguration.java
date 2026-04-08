@@ -13,9 +13,9 @@ import java.util.concurrent.TimeUnit;
 
 @AutoConfiguration
 @EnableConfigurationProperties(EasyAiProperties.class)
-public class InitialAutoConfiguration {
+public class CoreAutoConfiguration {
 
-    @Autowired ChatClient chatClient;
+    @Autowired EasyAiProperties easyAiProperties;
 
     @Bean
     @ConditionalOnMissingBean
@@ -41,9 +41,9 @@ public class InitialAutoConfiguration {
                 .build();
     }
 
-    @Bean("chatClient")
-    public ChatClient easyChatClient() {
-        return chatClient;
+    @Bean
+    public ChatClient chatClient() {
+        return new ChatClient(easyOkHttpClient(), easyAiProperties);
     }
 
 }

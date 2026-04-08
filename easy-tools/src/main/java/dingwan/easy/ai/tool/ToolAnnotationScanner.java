@@ -10,7 +10,6 @@ import java.lang.reflect.Method;
 import java.util.Map;
 
 @Slf4j
-@Component
 public class ToolAnnotationScanner implements CommandLineRunner {
 
     private final ToolRegistry registry;

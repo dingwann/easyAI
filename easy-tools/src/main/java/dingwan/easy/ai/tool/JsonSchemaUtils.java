@@ -50,6 +50,8 @@ public class JsonSchemaUtils {
                 paramSchema.put("type", "integer");
             } else if (type == Long.class || type == long.class) {
                 paramSchema.put("type", "long");
+            } else if (type == Double.class || type == double.class) {
+                paramSchema.put("type", "double");
             } else if (type == Boolean.class || type == boolean.class) {
                 paramSchema.put("type", "boolean");
             } else {

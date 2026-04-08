@@ -2,7 +2,6 @@ package dingwan.easy.ai.agent.impl;
 
 import com.alibaba.fastjson2.JSON;
 import com.alibaba.fastjson2.JSONObject;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import dingwan.easy.ai.agent.BaseAgent;
 import dingwan.easy.ai.core.chat.ChatClient;
 import dingwan.easy.ai.core.chat.message.AssistantMessage;
@@ -17,7 +16,6 @@ import dingwan.easy.ai.tool.ToolExecutor;
 import dingwan.easy.ai.tool.ToolRegistry;
 import lombok.extern.slf4j.Slf4j;
 
-import org.springframework.stereotype.Component;
 import reactor.core.publisher.Flux;
 
 import java.util.*;
@@ -28,7 +26,6 @@ import java.util.regex.Pattern;
  * 基于基类重写简单对话Agent
  */
 @Slf4j
-@Component
 public class SimpleAgent extends BaseAgent {
 
     private final ToolRegistry toolRegistry;
@@ -49,7 +46,41 @@ public class SimpleAgent extends BaseAgent {
     /**
      * 重写的运行方法 - 实现简单对话逻辑，支持可选工具调用
      * @param inputText 输入问题
-     * @param kwargs 参数
+     * @return 答案
+     */
+    @Override
+    public String run(String inputText) {
+        log.info("\uD83E\uDD16 {} 正在处理: {}", this.name, inputText);
+        // 构建消息列表
+        List<Message> messages = new ArrayList<>();
+
+        // 添加系统消息
+        String systemPrompt = this.getSystemPrompt();
+        messages.add(new SystemMessage(systemPrompt));
+
+        // 添加历史消息
+        messages.addAll(this.history);
+
+        // 添加用户消息
+        messages.add(new UserMessage(inputText));
+
+        // 如果没有启用工具调用，使用简单的对话逻辑
+        if (!this.toolEnabled) {
+            ChatResponse chatResponse = this.chatClient.call(messages);
+            this.addMessage(new UserMessage(inputText));
+            this.addMessage(new AssistantMessage(chatResponse.getContent()));
+            log.info("✅ {} 响应完成", this.name);
+            return chatResponse.getContent();
+        }
+
+        // 支持多轮工具调用的逻辑
+        return this.runWithTool(messages, inputText, maxToolIteration);
+    }
+
+    /**
+     * 重写的运行方法 - 实现简单对话逻辑，支持可选工具调用
+     * @param inputText 输入问题
+     * @param kwargs 可选配置属性
      * @return 答案
      */
     @Override
@@ -78,7 +109,7 @@ public class SimpleAgent extends BaseAgent {
         }
 
         // 支持多轮工具调用的逻辑
-        return this.runWithTool(messages, inputText, maxToolIteration, kwargs);
+        return this.runWithTool(messages, inputText, maxToolIteration);
     }
 
     /**
@@ -210,16 +241,16 @@ public class SimpleAgent extends BaseAgent {
      * @param messages 构建的消息列表
      * @param inputText 用户问题
      * @param maxToolIteration 最大迭代次数
-     * @param kwargs 工具参数
      * @return 答案
      */
-    private String runWithTool(List<Message> messages, String inputText, int maxToolIteration, Map<String, Object> kwargs) {
+    private String runWithTool(List<Message> messages, String inputText, int maxToolIteration) {
         int currentIteration = 0;
         String finalAnswer = "";
 
         while (currentIteration < maxToolIteration) {
             // 调用llm
             ChatResponse chatResponse = this.chatClient.call(messages);
+            System.out.println("第" + ++currentIteration + "次调用：" + "\n" + chatResponse.getContent());
             // 检查是否有工具调用
             List<ToolCallJSON> toolCallJSON = this.parseToolCall(chatResponse.getContent());
             if (toolCallJSON == null ||  toolCallJSON.isEmpty()) {
@@ -272,9 +303,10 @@ public class SimpleAgent extends BaseAgent {
         if (!matcher.find())
             return Collections.emptyList();
         String toolStr = matcher.group(1).trim();
+        log.info("工具调用JSON: {}", toolStr);
         // 将json字符串转换为对象
         return JSON.parseObject(toolStr)
-                .getJSONArray("tool_call")
+                .getJSONArray("tool_calls")
                 .stream()
                 .map(obj -> ((JSONObject) obj).to(ToolCallJSON.class))
                 .toList();

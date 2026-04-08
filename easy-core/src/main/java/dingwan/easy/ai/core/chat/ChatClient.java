@@ -1,20 +1,18 @@
 package dingwan.easy.ai.core.chat;
 
+import dingwan.easy.ai.core.config.EasyAiProperties;
 import dingwan.easy.ai.core.chat.message.Message;
 import dingwan.easy.ai.core.chat.message.SystemMessage;
 import dingwan.easy.ai.core.chat.message.UserMessage;
 import dingwan.easy.ai.core.chat.model.ChatRequest;
 import dingwan.easy.ai.core.chat.model.ChatResponse;
 import dingwan.easy.ai.core.chat.provider.openai.OpenAIChatModel;
-import dingwan.easy.ai.core.config.EasyAiProperties;
 import lombok.Getter;
 import okhttp3.OkHttpClient;
-import org.springframework.stereotype.Component;
 import reactor.core.publisher.Flux;
 
 import java.util.List;
 
-@Component
 @Getter
 public class ChatClient {
 

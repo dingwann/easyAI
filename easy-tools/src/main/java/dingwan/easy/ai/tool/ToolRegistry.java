@@ -1,13 +1,11 @@
 package dingwan.easy.ai.tool;
 
-import org.springframework.stereotype.Component;
 
 import java.util.Collection;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
-@Component
 public class ToolRegistry {
 
     private final Map<String, ToolDefinition> toolMap = new ConcurrentHashMap<>();

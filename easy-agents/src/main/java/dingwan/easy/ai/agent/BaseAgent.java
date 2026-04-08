@@ -26,6 +26,8 @@ public abstract class BaseAgent {
         this.chatOptions = chatOptions;
     }
 
+    public abstract String run(String inputText);
+
     /**
      * 运行入口
      * @param inputText 输入问题

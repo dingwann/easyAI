@@ -6,7 +6,6 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
 import java.util.Map;
 
-@Component
 public class ToolExecutor {
 
     private final ToolRegistry registry;
