@@ -3,7 +3,6 @@ package dingwan.easy.ai.app;
 import dingwan.easy.ai.agent.impl.SimpleAgent;
 import dingwan.easy.ai.core.chat.ChatClient;
 import dingwan.easy.ai.core.chat.model.ChatResponse;
-import dingwan.easy.ai.tool.ToolDefinition;
 import dingwan.easy.ai.tool.ToolExecutor;
 import dingwan.easy.ai.tool.ToolRegistry;
 import org.junit.jupiter.api.Test;

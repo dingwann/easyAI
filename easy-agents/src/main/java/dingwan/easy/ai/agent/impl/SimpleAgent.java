@@ -370,6 +370,7 @@ public class SimpleAgent extends BaseAgent {
         2. 必须是合法JSON
         3. 不要输出额外解释
         4. 如果不需要调用工具，正常回答即可
+        5. 必须在JSON前后添加```json开头和```结束标记
 
         工具调用结果会自动插入到对话中，然后你可以基于结果继续回答。
         """.formatted(toolDesc);
@@ -381,7 +382,7 @@ public class SimpleAgent extends BaseAgent {
      * 添加工具到Agent
      * @param tool 工具定义
      */
-    private void addTool(ToolDefinition tool) {
+    public void addTool(ToolDefinition tool) {
         if (this.toolRegistry == null)
             throw new RuntimeException("工具注册器不存在");
         this.toolRegistry.register(tool);
@@ -392,7 +393,7 @@ public class SimpleAgent extends BaseAgent {
      * 检查是否有可用工具
      * @return 检查结果
      */
-    private boolean hasTools() {
+    public boolean hasTools() {
         return this.toolEnabled && this.toolRegistry != null;
     }
 
@@ -401,7 +402,7 @@ public class SimpleAgent extends BaseAgent {
      * @param toolName 工具名称
      * @return 移除结果
      */
-    private boolean removeTool(String toolName) {
+    public boolean removeTool(String toolName) {
         if (this.toolRegistry != null) {
             return this.toolRegistry.remove(toolName);
         }
@@ -412,7 +413,7 @@ public class SimpleAgent extends BaseAgent {
      * 列出所有工具
      * @return list
      */
-    private List<ToolDefinition> getTools() {
+    public List<ToolDefinition> getTools() {
         Collection<ToolDefinition> toolRegistryAll = this.toolRegistry.getAll();
         return new ArrayList<>(toolRegistryAll);
     }
