@@ -18,7 +18,6 @@ public class PromptTemplate {
 
             ## 输出格式
             ### 需要调用工具时
-            ```json
             {
               "thought": "你的分析过程",
               "tool_calls": [
@@ -29,13 +28,12 @@ public class PromptTemplate {
                   }
                 }
               ]
-            }````
+            }
             ### 已经能够回答时
-            ```json
             {
               "thought": "你的分析过程",
               "final_answer": "最终答案"
-            }```
+            }
             
             ## 规则
             1. 必须返回合法JSON
@@ -55,4 +53,32 @@ public class PromptTemplate {
             现在开始你的推理和行动:
             """;
 
+    public static String Reflection_init = """
+            请根据以下要求完成任务:
+            任务: {task}
+            请提供一个完整、准确的回答。
+            """;
+
+    public static String Reflection_reflect = """
+            请仔细审查以下回答，并找出可能的问题或改进空间:
+            # 原始任务:
+            {task}
+            # 当前回答:
+            {content}
+            请分析这个回答的质量，指出不足之处，并提出具体的改进建议。
+            如果回答已经很好，请回答"无需改进"。
+            禁止出现以下情况类似情况就是在既满足也可以接着改进的说法，类似这种：
+            如果根据“无需改进”的判定标准，本回答确实已满足“简短文章”的基本要求，但若要求更专业，则建议按上述意见微调。
+            """;
+
+    public static String Reflection_refine = """
+            请根据反馈意见改进你的回答:
+            # 原始任务:
+            {task}
+            # 上一轮回答:
+            {last_attempt}
+            # 反馈意见:
+            {feedback}
+            请提供一个改进后的回答。
+            """;
 }

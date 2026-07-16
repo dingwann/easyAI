@@ -1,12 +1,11 @@
 package dingwan.easy.ai.agent.impl;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import dingwan.easy.ai.agent.BaseAgent;
 import dingwan.easy.ai.agent.model.ReActOutput;
+import dingwan.easy.ai.agent.model.ToolCall;
 import dingwan.easy.ai.core.chat.ChatClient;
 import dingwan.easy.ai.core.chat.message.AssistantMessage;
-import dingwan.easy.ai.core.chat.message.Message;
 import dingwan.easy.ai.core.chat.message.UserMessage;
 import dingwan.easy.ai.core.chat.model.ChatOptions;
 import dingwan.easy.ai.core.chat.model.ChatRequest;
@@ -40,7 +39,7 @@ public class ReActAgent extends BaseAgent {
 
     @Override
     public String run(String inputText) {
-        return "";
+        return this.run(inputText, null);
     }
 
     @Override
@@ -49,15 +48,15 @@ public class ReActAgent extends BaseAgent {
         int currentStep = 0;
         log.info("\n🤖 {} 开始处理问题：{}", this.name, inputText);
 
+        String allToolDesc = this.toolRegistry.getAllToolDesc();
         while (currentStep < this.maxToolIteration) {
             currentStep++;
             log.info("\n--- 第{}步 ---", currentStep);
             // 构建提示词
-            String allToolDesc = this.toolRegistry.getAllToolDesc();
             String historyStr = String.join("\n", currentHistory);
             String prompt = this.systemPrompt.replace("{tools}", allToolDesc)
                     .replace("{history}", historyStr)
-                    .replace("{question", inputText);
+                    .replace("{question}", inputText);
 
             // 调用LLM
             UserMessage userMessage = UserMessage.builder()
@@ -68,6 +67,7 @@ public class ReActAgent extends BaseAgent {
                     .options(ChatOptions.builderByArgs(kwargs))
                     .build();
             String responseContent = this.chatClient.call(chatRequest).getContent();
+            log.info("AI原始输出: {}", responseContent);
 
             // 解析输出
             ReActOutput output = this.parseOutput(responseContent);
@@ -81,34 +81,46 @@ public class ReActAgent extends BaseAgent {
                 return finalAnswer;
             }
             // 执行工具调用
-
-
+            String thought = output.getThought();
+            log.info("AI思考内容：{}", thought);
+            List<ToolCall> toolCalls = output.getToolCalls();
+            // 构建行动消息
+            currentHistory.add(String.format("Action: %s", toolCalls.toString()));
+            for (ToolCall toolCall : toolCalls) {
+                log.info("解析执行工具调用，当前执行工具：{}", toolCall.getName());
+                String name = toolCall.getName();
+                Map<String, Object> arguments = toolCall.getArguments();
+                Object execute;
+                try {
+                    execute = toolExecutor.execute(name, arguments);
+                    // 构建工具消息
+                    currentHistory.add(String.format("Observation: %s", execute.toString()));
+                } catch (Exception e) {
+                    log.error("工具执行失败：{}", name);
+                    throw new RuntimeException(e);
+                }
+            }
         }
-
-
-
-
-
-
-        return "";
+        // 达到最大步数
+        String finalAnswer = "抱歉，我无法在限定步数内完成这个任务。";
+        this.addMessage(UserMessage.builder().text(inputText).build());
+        this.addMessage(AssistantMessage.builder().content(finalAnswer).build());
+        return finalAnswer;
     }
 
-    private ReActOutput parseOutput(String responseContent) {
-        Matcher matcher = jsonPattern.matcher(responseContent);
-        if (!matcher.find()) {
-            log.error("❌ AI回答JSON解析错误");
-            throw new RuntimeException("AI回答JSON解析错误");
-            // TODO 错误兜底处理
+    private ReActOutput parseOutput(String response) {
+        String json = response.trim();
+        if (json.startsWith("```")) {
+            Matcher matcher = jsonPattern.matcher(json);
+            if (matcher.find()) {
+                json = matcher.group(1).trim();
+            }
         }
-        String chatStr = matcher.group(1).trim();
-        ReActOutput output;
         try {
-            output = OBJECT_MAPPER.readValue(chatStr, ReActOutput.class);
-        } catch (JsonProcessingException e) {
-            // TODO 错误兜底处理
-            throw new RuntimeException(e);
+            return OBJECT_MAPPER.readValue(json, ReActOutput.class);
+        } catch (Exception e) {
+            throw new RuntimeException("解析AI输出失败:\n" + json, e);
         }
-        return output;
     }
 
 }
