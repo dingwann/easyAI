@@ -14,7 +14,7 @@ public class ReflectionAgentTest {
     @Test
     public void test() {
         ReflectionAgent reflectionAgent = new ReflectionAgent(chatClient, chatClient, chatClient);
-        String run = reflectionAgent.run("写一篇关于人工智能发展历程的简短文章");
+        String run = reflectionAgent.run("写个python版本的去重算法");
     }
 
 }

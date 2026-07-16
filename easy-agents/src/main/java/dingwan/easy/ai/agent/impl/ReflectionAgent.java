@@ -47,8 +47,8 @@ public class ReflectionAgent {
         String reflectionResponse = this.reflectionChatClient.call(reflectPrompt).getContent();
         int reflectionIndex = 1;
         log.info("第 {} 次审查，结果：{}", reflectionIndex++, reflectionResponse);
+        int index = 1;
         while (!reflectionResponse.contains("无需改进")) {
-            int index = 1;
             // 改进
             String refinePrompt = PromptTemplate.Reflection_refine
                     .replace("{task}", inputText)
