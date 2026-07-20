@@ -1,13 +1,11 @@
 package dingwan.easy.ai.core.chat;
 
-import dingwan.easy.ai.core.chat.message.AssistantMessage;
-import dingwan.easy.ai.core.chat.message.Message;
-import dingwan.easy.ai.core.chat.message.SystemMessage;
-import dingwan.easy.ai.core.chat.message.UserMessage;
+import dingwan.easy.ai.core.chat.message.*;
 import dingwan.easy.ai.core.chat.message.content.ContentPart;
 import dingwan.easy.ai.core.chat.model.ChatOptions;
 import dingwan.easy.ai.core.chat.model.ChatRequest;
 import dingwan.easy.ai.core.chat.model.ChatResponse;
+import dingwan.easy.ai.core.chat.model.ToolRequest;
 import reactor.core.publisher.Flux;
 
 import java.util.ArrayList;
@@ -57,6 +55,26 @@ public class ChatClientPromptSpec {
         return this;
     }
 
+    public ChatClientPromptSpec assistant(AssistantMessage assistantMessage) {
+        messages.add(assistantMessage);
+        return this;
+    }
+
+    public ChatClientPromptSpec tool(String tool, String toolCallId) {
+        messages.add(new ToolMessage(tool, toolCallId));
+        return this;
+    }
+
+    public ChatClientPromptSpec tool(ToolMessage toolMessage) {
+        messages.add(toolMessage);
+        return this;
+    }
+
+    public ChatClientPromptSpec tool(List<ToolMessage> toolMessages) {
+        messages.addAll(toolMessages);
+        return this;
+    }
+
     public ChatClientPromptSpec messages(List<Message> messages) {
         this.messages.addAll(messages);
         return this;
@@ -64,6 +82,19 @@ public class ChatClientPromptSpec {
 
     public ChatClientPromptSpec options(ChatOptions options) {
         this.options = options;
+        return this;
+    }
+
+    /**
+     * 设置工具列表（原生 Function Calling）
+     * 会合并到已有 options 中
+     */
+    public ChatClientPromptSpec tools(List<ToolRequest> tools) {
+        if (this.options == null) {
+            this.options = ChatOptions.builder().tools(tools).build();
+        } else {
+            this.options.setTools(tools);
+        }
         return this;
     }
 

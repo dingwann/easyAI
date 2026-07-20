@@ -20,6 +20,7 @@ public class ChatOptions {
     private Integer maxTokens;
     private Double topP;
     private List<String> stop;
+    private List<ToolRequest> tools;
 
     public static ChatOptions defaults() {
         return ChatOptions.builder().build();

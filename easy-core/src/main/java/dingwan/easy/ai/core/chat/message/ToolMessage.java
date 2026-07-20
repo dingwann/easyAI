@@ -1,6 +1,9 @@
 package dingwan.easy.ai.core.chat.message;
 
+import lombok.Getter;
+
 public class ToolMessage extends AbstractMessage {
+    @Getter
     private final String tool_call_id;
 
     public ToolMessage(String content, String toolCallId) {

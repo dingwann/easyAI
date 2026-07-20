@@ -1,20 +1,21 @@
 package dingwan.easy.ai.core.chat.provider.openai;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import dingwan.easy.ai.core.chat.ChatModel;
+import dingwan.easy.ai.core.chat.message.AssistantMessage;
+import dingwan.easy.ai.core.chat.message.ToolMessage;
+import dingwan.easy.ai.core.chat.model.*;
 import dingwan.easy.ai.core.config.EasyAiProperties;
 import dingwan.easy.ai.core.chat.message.Message;
 import dingwan.easy.ai.core.chat.message.UserMessage;
 import dingwan.easy.ai.core.chat.message.content.ContentPart;
 import dingwan.easy.ai.core.chat.message.content.ImageContent;
 import dingwan.easy.ai.core.chat.message.content.TextContent;
-import dingwan.easy.ai.core.chat.model.ChatOptions;
-import dingwan.easy.ai.core.chat.model.ChatRequest;
-import dingwan.easy.ai.core.chat.model.ChatResponse;
-import dingwan.easy.ai.core.chat.model.Usage;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.*;
 import reactor.core.publisher.Flux;
@@ -23,6 +24,8 @@ import reactor.core.publisher.FluxSink;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.ArrayList;
+import java.util.List;
 
 @Slf4j
 public class OpenAIChatModel implements ChatModel {
@@ -44,6 +47,7 @@ public class OpenAIChatModel implements ChatModel {
 
     @Override
     public ChatResponse call(ChatRequest request) {
+        log.info("ChatRequest: {}", request);
         RequestBody body = buildRequestBody(request, false);
         Request httpRequest = new Request.Builder()
                 .url(endpoint)
@@ -134,6 +138,23 @@ public class OpenAIChatModel implements ChatModel {
             options.getStop().forEach(stopArray::add);
         }
 
+        // 序列化 tools 数组（原生 Function Calling）
+        if (options.getTools() != null && !options.getTools().isEmpty()) {
+            ArrayNode toolsArray = root.putArray("tools");
+            for (ToolRequest tool : options.getTools()) {
+                ObjectNode toolNode = toolsArray.addObject();
+                toolNode.put("type", tool.getType());
+                if (tool.getFunction() != null) {
+                    ObjectNode funcNode = toolNode.putObject("function");
+                    funcNode.put("name", tool.getFunction().getName());
+                    funcNode.put("description", tool.getFunction().getDescription());
+                    if (tool.getFunction().getParameters() != null) {
+                        funcNode.putPOJO("parameters", tool.getFunction().getParameters());
+                    }
+                }
+            }
+        }
+
         ArrayNode messagesArray = root.putArray("messages");
         for (Message msg : request.getMessages()) {
             ObjectNode msgNode = messagesArray.addObject();
@@ -155,10 +176,24 @@ public class OpenAIChatModel implements ChatModel {
                         }
                     }
                 }
+            } else if (msg instanceof AssistantMessage assistantMessage && assistantMessage.getTool_calls() != null) {
+                try {
+                    // 工具消息
+                    JsonNode toolCallsNode = objectMapper.valueToTree(assistantMessage.getTool_calls());
+                    msgNode.put("tool_calls", toolCallsNode);
+                } catch (Exception e) {
+                    log.error("工具消息转换JSON出错");
+                    throw new RuntimeException(e);
+                }
+            } else if (msg instanceof ToolMessage tm && tm.getTool_call_id() != null) {
+                msgNode.put("content", msg.getText());
+                msgNode.put("tool_call_id", tm.getTool_call_id());
             } else {
                 msgNode.put("content", msg.getText());
             }
         }
+
+        log.info("Request Body: {}", root);
 
         return RequestBody.create(root.toString(), MediaType.parse("application/json"));
     }
@@ -174,12 +209,14 @@ public class OpenAIChatModel implements ChatModel {
                 .maxTokens(requestOptions.getMaxTokens() != null ? requestOptions.getMaxTokens() : defaults.getMaxTokens())
                 .topP(requestOptions.getTopP() != null ? requestOptions.getTopP() : defaults.getTopP())
                 .stop(requestOptions.getStop() != null ? requestOptions.getStop() : defaults.getStop())
+                .tools(requestOptions.getTools() != null ? requestOptions.getTools() : defaults.getTools())
                 .build();
     }
 
     private ChatResponse parseResponse(String responseBody) {
         try {
             JsonNode root = objectMapper.readTree(responseBody);
+            log.info("Response Body Root: {}", root);
             String content = root.path("choices").path(0).path("message").path("content").asText();
             String model = root.path("model").asText();
 
@@ -190,10 +227,25 @@ public class OpenAIChatModel implements ChatModel {
                     .totalTokens(usageNode.path("total_tokens").asInt())
                     .build();
 
+            // 工具
+            // 1. 取出 tool_calls 节点
+            JsonNode toolCallsNode = root.path("choices").path(0).path("message").path("tool_calls");
+
+            // 2. 判断是否为数组且有内容
+            List<ToolCall> toolCalls = new ArrayList<>();
+            if (toolCallsNode.isArray() && !toolCallsNode.isEmpty()) {
+                toolCalls = objectMapper.convertValue(
+                        toolCallsNode,
+                        new TypeReference<List<ToolCall>>() {
+                        }
+                );
+            }
+
             return ChatResponse.builder()
                     .content(content)
                     .model(model)
                     .usage(usage)
+                    .tool_calls(toolCalls)
                     .build();
         } catch (IOException e) {
             throw new RuntimeException("Failed to parse response", e);
