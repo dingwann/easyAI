@@ -1,3 +1,7 @@
 spring:
   config:
     import: optional:file:../.env[.properties]
+
+tavily_key: <input your key>
+serpapi_key: <input your key>
+available_backends: tavily, serpapi
