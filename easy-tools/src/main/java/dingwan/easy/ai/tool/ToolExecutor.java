@@ -1,6 +1,5 @@
 package dingwan.easy.ai.tool;
 
-import org.springframework.stereotype.Component;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
